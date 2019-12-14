@@ -20,7 +20,7 @@ func New(provider provider.ImageProvider) Server {
 
 // Start starts the server
 func (s Server) Start() {
-	http.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r)
 		image, err := s.provider.Provide()
 		if err != nil {
@@ -33,5 +33,6 @@ func (s Server) Start() {
 		w.WriteHeader(200)
 		io.Copy(w, image)
 	})
+
 	http.ListenAndServe(":8080", nil)
 }

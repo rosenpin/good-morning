@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"gitlab.com/rosenpin/good-morning/caching"
 	"gitlab.com/rosenpin/good-morning/config"
@@ -23,39 +24,33 @@ type ImageProvider struct {
 
 // Provide provides the image
 func (p ImageProvider) Provide() (io.ReadCloser, error) {
-	cache, err := p.cache.Load(caching.ImageKey)
-	if err == nil {
-		r, ok := cache.(io.ReadCloser)
-		if !ok {
-			return nil, fmt.Errorf("caching return invalid type")
-		}
-		return r, nil
+	if p.isCacheValid() {
+		return p.loadFromCache()
 	}
 
-	query, err := p.urlCreator.Create(configToParams(p.config))
+	fmt.Println("cache invalid, reloading..")
+
+	link, err := p.getImageURL()
 	if err != nil {
 		return nil, err
-	}
-
-	fmt.Println("sending request:", query)
-	result, err := p.querier.Query(query)
-	if err != nil {
-		return nil, err
-	}
-
-	rawParsed, err := p.parser.Parse(result)
-	if err != nil {
-		return nil, err
-	}
-
-	link, ok := rawParsed.(string)
-	if !ok {
-		return nil, fmt.Errorf("unexpected result returned from parser, %T:%v", link, link)
 	}
 
 	p.cache.Save(caching.ImageKey, link)
 
-	cache, err = p.cache.Load(caching.ImageKey)
+	return p.loadFromCache()
+}
+
+func (p ImageProvider) isCacheValid() bool {
+	cacheAge, err := p.cache.Age(caching.ImageKey)
+	if err == nil && cacheAge < time.Hour*time.Duration(p.config.Image.LifeSpan) {
+		return true
+	}
+
+	return false
+}
+
+func (p ImageProvider) loadFromCache() (io.ReadCloser, error) {
+	cache, err := p.cache.Load(caching.ImageKey)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +59,32 @@ func (p ImageProvider) Provide() (io.ReadCloser, error) {
 	if !ok {
 		return nil, fmt.Errorf("caching return invalid type")
 	}
-
 	return r, nil
+}
+
+func (p ImageProvider) getImageURL() (string, error) {
+	query, err := p.urlCreator.Create(configToParams(p.config))
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("sending request:", query)
+	result, err := p.querier.Query(query)
+	if err != nil {
+		return "", err
+	}
+
+	rawParsed, err := p.parser.Parse(result)
+	if err != nil {
+		return "", err
+	}
+
+	link, ok := rawParsed.(string)
+	if !ok {
+		return "", fmt.Errorf("unexpected result returned from parser, %T:%v", link, link)
+	}
+
+	return link, nil
 }
 
 func configToParams(c config.Config) url.GoogleImagesParams {
