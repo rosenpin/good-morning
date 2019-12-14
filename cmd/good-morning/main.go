@@ -26,23 +26,25 @@ func main() {
 	cache := caching.NewImage()
 
 	provider := provider.NewImageProvider(querier, urlCreator, parser, conf, cache)
+	for err := start(provider); err != nil; err = start(provider) {
+		fmt.Printf("failed to load, %v, retrying\n", err)
+	}
+}
 
+func start(provider provider.ImageProvider) error {
 	rc, err := provider.Provide()
+	if err != nil {
+		return err
+	}
 	rc.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Println("loaded successfully")
 
 	server := server.New(provider)
 	server.Start()
-
-	//link, err := provider.Provide()
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	//openBrowser(link)
+	return nil
 }
 
 func openBrowser(url string) bool {

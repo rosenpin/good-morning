@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -21,7 +20,6 @@ func New(provider provider.ImageProvider) Server {
 // Start starts the server
 func (s Server) Start() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r)
 		image, err := s.provider.Provide()
 		if err != nil {
 			w.WriteHeader(501)
