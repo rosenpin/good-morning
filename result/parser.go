@@ -3,7 +3,7 @@ package result
 import "fmt"
 
 const (
-	responseErr = "unexpected google images response format"
+	responseErr = "unexpected google images response format\n%v"
 )
 
 // Parser parsers query responses, every query implementation must be aware of its expected input and enforce it
@@ -20,26 +20,26 @@ type GoogleImagesResultParser struct {
 func (g GoogleImagesResultParser) Parse(raw interface{}) (interface{}, error) {
 	r, ok := raw.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf(responseErr)
+		return nil, fmt.Errorf(responseErr, r)
 	}
 
 	items, ok := r["items"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf(responseErr)
+		return nil, fmt.Errorf(responseErr, r)
 	}
 
 	if len(items) < 1 {
-		return nil, fmt.Errorf(responseErr)
+		return nil, fmt.Errorf(responseErr, r)
 	}
 
 	item, ok := items[0].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf(responseErr)
+		return nil, fmt.Errorf(responseErr, r)
 	}
 
 	link, ok := item["link"].(string)
 	if !ok {
-		return nil, fmt.Errorf(responseErr)
+		return nil, fmt.Errorf(responseErr, r)
 	}
 
 	return link, nil

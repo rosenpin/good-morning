@@ -6,10 +6,12 @@ import (
 	"runtime"
 
 	"github.com/spf13/viper"
+	"gitlab.com/rosenpin/good-morning/caching"
 	"gitlab.com/rosenpin/good-morning/config"
 	"gitlab.com/rosenpin/good-morning/provider"
 	"gitlab.com/rosenpin/good-morning/querier"
 	"gitlab.com/rosenpin/good-morning/result"
+	"gitlab.com/rosenpin/good-morning/server"
 	"gitlab.com/rosenpin/good-morning/url"
 )
 
@@ -21,15 +23,26 @@ func main() {
 	querier := querier.JSONQuerier{}
 	urlCreator := url.GoogleImagesCreator{}
 	parser := result.GoogleImagesResultParser{}
+	cache := caching.NewImage()
 
-	provider := provider.NewImageProvider(querier, urlCreator, parser, conf)
+	provider := provider.NewImageProvider(querier, urlCreator, parser, conf, cache)
 
-	link, err := provider.Provide()
+	rc, err := provider.Provide()
+	rc.Close()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("loaded successfully")
 
-	openBrowser(link)
+	server := server.New(provider)
+	server.Start()
+
+	//link, err := provider.Provide()
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	//openBrowser(link)
 }
 
 func openBrowser(url string) bool {
@@ -51,6 +64,7 @@ func loadConfig() {
 	viper.AddConfigPath("/etc/good-morning/")
 	viper.AddConfigPath("$HOME/.good-morning")
 	viper.AddConfigPath(".")
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("fatal error config file: %s", err))

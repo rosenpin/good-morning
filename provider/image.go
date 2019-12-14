@@ -2,7 +2,9 @@ package provider
 
 import (
 	"fmt"
+	"io"
 
+	"gitlab.com/rosenpin/good-morning/caching"
 	"gitlab.com/rosenpin/good-morning/config"
 	"gitlab.com/rosenpin/good-morning/querier"
 	"gitlab.com/rosenpin/good-morning/result"
@@ -15,32 +17,55 @@ type ImageProvider struct {
 	querier    querier.Querier
 	urlCreator url.Creator
 	parser     result.Parser
+	cache      caching.Cache
 	config     config.Config
 }
 
 // Provide provides the image
-func (p ImageProvider) Provide() (string, error) {
-	query, err := p.urlCreator.Create(configToParams(p.config))
-	if err != nil {
-		return "", err
+func (p ImageProvider) Provide() (io.ReadCloser, error) {
+	cache, err := p.cache.Load(caching.ImageKey)
+	if err == nil {
+		r, ok := cache.(io.ReadCloser)
+		if !ok {
+			return nil, fmt.Errorf("caching return invalid type")
+		}
+		return r, nil
 	}
 
+	query, err := p.urlCreator.Create(configToParams(p.config))
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("sending request:", query)
 	result, err := p.querier.Query(query)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	rawParsed, err := p.parser.Parse(result)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	link, ok := rawParsed.(string)
 	if !ok {
-		return "", fmt.Errorf("unexpected result returned from parser, %T:%v", link, link)
+		return nil, fmt.Errorf("unexpected result returned from parser, %T:%v", link, link)
 	}
 
-	return link, nil
+	p.cache.Save(caching.ImageKey, link)
+
+	cache, err = p.cache.Load(caching.ImageKey)
+	if err != nil {
+		return nil, err
+	}
+
+	r, ok := cache.(io.ReadCloser)
+	if !ok {
+		return nil, fmt.Errorf("caching return invalid type")
+	}
+
+	return r, nil
 }
 
 func configToParams(c config.Config) url.GoogleImagesParams {
@@ -57,6 +82,6 @@ func configToParams(c config.Config) url.GoogleImagesParams {
 }
 
 // NewImageProvider creates a new image provider object
-func NewImageProvider(querier querier.Querier, urlCreator url.Creator, parser result.Parser, config config.Config) ImageProvider {
-	return ImageProvider{querier: querier, urlCreator: urlCreator, parser: parser, config: config}
+func NewImageProvider(querier querier.Querier, urlCreator url.Creator, parser result.Parser, config config.Config, cache caching.Cache) ImageProvider {
+	return ImageProvider{querier: querier, urlCreator: urlCreator, parser: parser, config: config, cache: cache}
 }
