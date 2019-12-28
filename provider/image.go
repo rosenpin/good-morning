@@ -95,6 +95,7 @@ func configToParams(c config.Config) url.GoogleImagesParams {
 	p.BaseQuery = c.Search.BaseQuery
 	p.ImgSize = c.Image.Size
 	p.Randomness = c.Search.Randomness
+	p.Features = c.Search.Features
 	p.ResultNum = 1
 
 	return p

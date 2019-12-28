@@ -20,9 +20,6 @@ func init() {
 const (
 	request = "https://www.googleapis.com/customsearch/v1"
 
-	// resultNumRand is the value used for selecting the random result index from the list of results
-	resultNumRand = 5
-
 	imageSearchType = "image"
 )
 
@@ -38,6 +35,7 @@ type GoogleImagesParams struct {
 	ImgSize    string
 	Randomness int
 	ResultNum  int
+	Features   []string
 }
 
 // Create creates a Google Images url using a set of URL parameters
@@ -62,9 +60,9 @@ func (g GoogleImagesCreator) Create(rawParams interface{}) (string, error) {
 func (g GoogleImagesCreator) addParams(params *url.Values, gparams GoogleImagesParams) string {
 	params.Add("key", gparams.APIKey)
 	params.Add("cx", gparams.APICX)
-	params.Add("q", gparams.BaseQuery+" "+strconv.Itoa(rand.Intn(gparams.Randomness)))
+	params.Add("q", gparams.BaseQuery+" "+gparams.Features[rand.Intn(len(gparams.Features))])
 	params.Add("imgSize", gparams.ImgSize)
-	params.Add("start", strconv.Itoa(rand.Intn(resultNumRand)))
+	params.Add("start", strconv.Itoa(rand.Intn(gparams.Randomness)))
 	params.Add("searchType", imageSearchType)
 	params.Add("num", strconv.Itoa(gparams.ResultNum))
 

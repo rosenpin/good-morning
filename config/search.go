@@ -5,4 +5,5 @@ type Search struct {
 	Randomness int
 	Safe       string
 	BaseQuery  string
+	Features   []string
 }

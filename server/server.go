@@ -32,5 +32,5 @@ func (s Server) Start() {
 		io.Copy(w, image)
 	})
 
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8181", nil)
 }
