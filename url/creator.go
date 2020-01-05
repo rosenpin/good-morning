@@ -61,7 +61,9 @@ func (g GoogleImagesCreator) addParams(params *url.Values, gparams GoogleImagesP
 	params.Add("key", gparams.APIKey)
 	params.Add("cx", gparams.APICX)
 	params.Add("q", gparams.BaseQuery+" "+gparams.Features[rand.Intn(len(gparams.Features))])
-	params.Add("imgSize", gparams.ImgSize)
+	if gparams.ImgSize != "all" {
+		params.Add("imgSize", gparams.ImgSize)
+	}
 	params.Add("start", strconv.Itoa(rand.Intn(gparams.Randomness)))
 	params.Add("searchType", imageSearchType)
 	params.Add("num", strconv.Itoa(gparams.ResultNum))
