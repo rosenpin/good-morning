@@ -30,6 +30,17 @@ func (p ImageProvider) Provide() (io.ReadCloser, error) {
 
 	fmt.Println("cache invalid, reloading..")
 
+	return p.getNewImage()
+}
+
+// ForceReload forces to load a new image even if the cache is valid
+func (p ImageProvider) ForceReload() (io.ReadCloser, error) {
+	fmt.Println("force reloading image")
+
+	return p.getNewImage()
+}
+
+func (p ImageProvider) getNewImage() (io.ReadCloser, error) {
 	link, err := p.getImageURL()
 	if err != nil {
 		return nil, err

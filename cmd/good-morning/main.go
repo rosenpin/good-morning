@@ -26,12 +26,12 @@ func main() {
 	cache := caching.NewImage()
 
 	provider := provider.NewImageProvider(querier, urlCreator, parser, conf, cache)
-	for err := start(provider); err != nil; err = start(provider) {
+	for err := start(provider, conf.MaxDailyReload); err != nil; err = start(provider, conf.MaxDailyReload) {
 		fmt.Printf("failed to load, %v, retrying\n", err)
 	}
 }
 
-func start(provider provider.ImageProvider) error {
+func start(provider provider.ImageProvider, maxDailyReload int) error {
 	rc, err := provider.Provide()
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func start(provider provider.ImageProvider) error {
 	}
 	fmt.Println("loaded successfully")
 
-	server := server.New(provider)
+	server := server.New(provider, maxDailyReload)
 	server.Start()
 	return nil
 }
