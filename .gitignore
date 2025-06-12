@@ -8,7 +8,7 @@ typescript/dist/
 typescript/.wrangler/
 typescript/.env
 typescript/.env.local
-typescript/package-lock.json
+# typescript/package-lock.json  # Keep this for CI consistency
 
 # IDE
 .vscode/
