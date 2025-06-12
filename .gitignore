@@ -1,3 +1,21 @@
 config.yml
 cmd/good-morning/good-morning
 good-morning.app
+
+# TypeScript / Node.js
+typescript/node_modules/
+typescript/dist/
+typescript/.wrangler/
+typescript/.env
+typescript/.env.local
+typescript/package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
