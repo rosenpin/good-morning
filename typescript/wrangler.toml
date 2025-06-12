@@ -1,0 +1,40 @@
+name = "good-morning-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-06"
+
+[env.production]
+vars = { }
+
+# Environment variables (non-sensitive)
+[vars]
+IMAGE_SIZE = "all"
+IMAGE_RIGHTS = "cc_sharealike,cc_publicdomain,cc_attribute,cc_noncommercial,cc_nonderived"
+IMAGE_LIFESPAN = "16"
+SEARCH_RANDOMNESS = "120"
+SEARCH_FEATURES = "friend,flower,today,green,wish,card,smile,dogs,cute,funny,religious,blessing,wholesome,cats,baby,quote,shayari,tea,inspirational,sweet,simple,morning,germany,sweet,tree,nature,pink"
+SEARCH_SAFE = "active"
+SEARCH_BASE_QUERY = "good morning image"
+MAX_DAILY_RELOAD = "6"
+
+# KV namespace for caching
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "c816af5801694457a68b54f652b11d0b"
+preview_id = "2d7b30c177f64a81ba4d30e734b6c2db"
+
+# Durable Objects for quota management
+[[durable_objects.bindings]]
+name = "QUOTA_MANAGER"
+class_name = "QuotaManager"
+
+# Durable Objects migrations (for free plan)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["QuotaManager"]
+
+# Cron triggers for daily reset (temporarily disabled for free plan)
+# [[triggers.crons]]
+# cron = "0 0 * * *"
+# Alternative: Reset every hour for testing
+# [[triggers.crons]]
+# cron = "0 * * * *"
